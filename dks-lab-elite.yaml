@@ -1,0 +1,49 @@
+# 🏗️ DKS RHCSA Training Environment (Rocky 10.2) - CLOUD-NATIVE AUTOMATED
+vmType: 'vz'
+mountType: 'virtiofs'
+
+images:
+  # Official Rocky 10 Cloud Image natively compiled for Apple Silicon / VZ
+  - location: 'https://download.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2'
+    arch: 'aarch64'
+
+disk: 100GiB
+additionalDisks:
+  - name: 'rhcsa-lvm'
+  - name: 'rhcsa-stratis'
+
+networks:
+  - lima: shared
+
+ssh:
+  localPort: 2222
+
+mounts:
+  - location: '/Users/homelab/obsidian/devops'
+    mountPoint: '/mnt/vault'
+    writable: true
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      # Apply cryptographic configurations or SELinux policies here
+
+      # FIX: Force SELinux context realignment for SSH structures before daemon reload
+      restorecon -Rv /etc/ssh /root/.ssh /home/*/.ssh || true
+
+      # FIX: Graceful reload prevents terminating Lima's active SSH tunnel
+      systemctl reload sshd
+
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      # FIX: Mounts are guaranteed to be active in the user provision phase
+      if [ -d "/mnt/vault" ]; then
+        journalctl -u sshd --since "1 hour ago" > /mnt/vault/sshd-crash-report.txt
+        echo "SSH telemetry successfully written to vault."
+      fi
