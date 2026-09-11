@@ -19,8 +19,9 @@ ssh:
   localPort: 2222
 
 mounts:
-  - location: '/Users/homelab/obsidian/devops'
-    mountPoint: '/mnt/vault'
+  - location: '~'
+    writable: false
+  - location: '~/obsidian'
     writable: true
 
 provision:
@@ -43,7 +44,8 @@ provision:
       set -eux -o pipefail
 
       # FIX: Mounts are guaranteed to be active in the user provision phase
-      if [ -d "/mnt/vault" ]; then
-        journalctl -u sshd --since "1 hour ago" > /mnt/vault/sshd-crash-report.txt
+      # Write directly to the native mirrored path now that ~/obsidian is writable
+      if [ -d "/Users/homelab/obsidian/devops" ]; then
+        journalctl -u sshd --since "1 hour ago" > /Users/homelab/obsidian/devops/sshd-crash-report.txt
         echo "SSH telemetry successfully written to vault."
       fi
