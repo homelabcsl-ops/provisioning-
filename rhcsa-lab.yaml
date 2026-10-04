@@ -1,39 +1,41 @@
 # ==============================================================================
-# DKS TARGET LAB: RHCSA 1:1 Parity (Official RHEL 10.2)
-# STRICT EXAM MODE: Vanilla Bash, Base Vim, No Visual Aids
+# 🎯 RHCSA 1:1 EXAM PARITY LAB (Red Hat Enterprise Linux 10.2)
 # ==============================================================================
-vmType: 'qemu'
-arch: 'aarch64'
-cpus: 4
-memory: '4GiB'
-disk: '100GiB'
+vmType: 'vz'
+rosetta:
+  enabled: true
+  binfmt: true
 
 images:
-  # Targets your local RHEL 10.2 ARM64 KVM image
-  - location: '~/provisioning/rhel-10-red.qcow2'
+  - location: '~/provisioning/rhel-10-red.qcow2.iso'
     arch: 'aarch64'
 
+cpus: 4
+memory: '4GiB'
+disk: '25GiB' # Primary OS Drive (vda)
+
+# Attach raw block devices for RHCSA storage objectives
+additionalDisks:
+  - name: 'rhcsa-storage-1' # (vdb)
+  - name: 'rhcsa-storage-2' # (vdc)
+
+mountType: 'virtiofs'
 mounts:
   - location: '~'
     writable: false
-  # Strictly mount the vault for documentation. No dotfiles.
   - location: '~/obsidian/rhcsa'
     writable: true
-
-networks:
-  - lima: shared
+  - location: '~/devops/ansible-lab'
+    writable: true
 
 provision:
   - mode: system
     script: |
       #!/bin/bash
-      # 1. Strict SELinux Enforcing (Exam Parity)
-      setenforce 1
-      sed -i 's/^SELINUX=.*/SELINUX=enforcing/' /etc/selinux/config
+      set -eux -o pipefail
+      # Bare minimum to ensure Ansible and VirtioFS bridge function
+      dnf install -y tar rsync python3
 
-      # 2. User Context (Sterile Bash)
-      useradd -m -s /bin/bash homelab.linux
-      echo "homelab.linux ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/homelab
-
-      # 3. Hostname routing for Aerospace regex
-      hostnamectl set-hostname RHCSA_LAB
+portForwards:
+  - guestSocket: '/run/user/{{.UID}}/podman/podman.sock'
+    hostSocket: '{{.Dir}}/sock/podman.sock'
