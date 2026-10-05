@@ -2,9 +2,9 @@
 # 🎯 RHCSA 1:1 EXAM PARITY LAB (Red Hat Enterprise Linux 10.2)
 # ==============================================================================
 vmType: 'vz'
-rosetta:
-  enabled: true
-  binfmt: true
+
+video:
+  display: 'mac'
 
 images:
   - location: '~/provisioning/rhel-10-red.qcow2.iso'
