@@ -4,7 +4,7 @@
 vmType: 'vz'
 
 video:
-  display: 'mac'
+  display: 'default'
 
 images:
   - location: '~/provisioning/rhel-10-red.qcow2.iso'
