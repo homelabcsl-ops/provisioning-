@@ -1,41 +1,25 @@
 # ==============================================================================
 # 🎯 RHCSA 1:1 EXAM PARITY LAB (Red Hat Enterprise Linux 10.2)
+# ~/provisioning/rhcsa-lab.yaml
 # ==============================================================================
 vmType: 'vz'
 
-video:
-  display: 'default'
+vmOpts:
+  vz:
+    rosetta:
+      enabled: false
+      binfmt: false
 
 images:
-  - location: '~/provisioning/rhel-10-red.qcow2.iso'
+  - location: '~/provisioning/images/rhel-10.2-aarch64-kvm.qcow2'
     arch: 'aarch64'
 
-cpus: 4
-memory: '4GiB'
-disk: '25GiB' # Primary OS Drive (vda)
+cpus: 2
+memory: 4GiB
+disk: 20GiB
 
-# Attach raw block devices for RHCSA storage objectives
-additionalDisks:
-  - name: 'rhcsa-storage-1' # (vdb)
-  - name: 'rhcsa-storage-2' # (vdc)
+ssh:
+  localPort: 50011
+  overVsock: false
 
-mountType: 'virtiofs'
-mounts:
-  - location: '~'
-    writable: false
-  - location: '~/obsidian/rhcsa'
-    writable: true
-  - location: '~/devops/ansible-lab'
-    writable: true
-
-provision:
-  - mode: system
-    script: |
-      #!/bin/bash
-      set -eux -o pipefail
-      # Bare minimum to ensure Ansible and VirtioFS bridge function
-      dnf install -y tar rsync python3
-
-portForwards:
-  - guestSocket: '/run/user/{{.UID}}/podman/podman.sock'
-    hostSocket: '{{.Dir}}/sock/podman.sock'
+mounts: []
