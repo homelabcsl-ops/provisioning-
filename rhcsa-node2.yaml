@@ -1,0 +1,38 @@
+# DKS RHCSA Node 2 (EL 10.2) - APPLE SILICON VZ NATIVE
+vmType: "vz"
+mountType: "virtiofs"
+rosetta:
+  enabled: false
+cpus: 2
+memory: "2GiB"
+disk: "20GiB"
+
+images:
+  - location: "https://download.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2"
+    arch: "aarch64"
+
+containerd:
+  system: false
+  user: false
+
+networks:
+  - lima: shared
+
+ssh:
+  localPort: 50012
+
+mounts:
+  - location: "~"
+    writable: false
+  - location: "~/obsidian"
+    writable: true
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      hostnamectl set-hostname node2.example.com
+      id student >/dev/null 2>&1 || useradd -m -G wheel student
+      restorecon -Rv /etc/ssh /root/.ssh /home/*/.ssh || true
+      systemctl reload sshd

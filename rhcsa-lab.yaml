@@ -1,25 +1,42 @@
-# ==============================================================================
-# 🎯 RHCSA 1:1 EXAM PARITY LAB (Red Hat Enterprise Linux 10.2)
-# ~/provisioning/rhcsa-lab.yaml
-# ==============================================================================
-vmType: 'vz'
-
-vmOpts:
-  vz:
-    rosetta:
-      enabled: false
-      binfmt: false
+# DKS RHCSA Node 1 (EL 10.2) - APPLE SILICON VZ NATIVE
+vmType: "vz"
+mountType: "virtiofs"
+rosetta:
+  enabled: false
+cpus: 2
+memory: "4GiB"
+disk: "20GiB"
 
 images:
-  - location: '~/provisioning/images/rhel-10.2-aarch64-kvm.qcow2'
-    arch: 'aarch64'
+  - location: "https://download.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2"
+    arch: "aarch64"
 
-cpus: 2
-memory: 4GiB
-disk: 20GiB
+containerd:
+  system: false
+  user: false
+
+additionalDisks:
+  - name: "rhcsa-storage-1"
+  - name: "rhcsa-storage-2"
+
+networks:
+  - lima: shared
 
 ssh:
   localPort: 50011
-  overVsock: false
 
-mounts: []
+mounts:
+  - location: "~"
+    writable: false
+  - location: "~/obsidian"
+    writable: true
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      hostnamectl set-hostname node1.example.com
+      id student >/dev/null 2>&1 || useradd -m -G wheel student
+      restorecon -Rv /etc/ssh /root/.ssh /home/*/.ssh || true
+      systemctl reload sshd
