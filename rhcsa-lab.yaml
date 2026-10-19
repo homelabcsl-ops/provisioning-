@@ -17,7 +17,9 @@ containerd:
 
 additionalDisks:
   - name: "rhcsa-storage-1"
+    format: false
   - name: "rhcsa-storage-2"
+    format: false
 
 networks:
   - lima: shared
@@ -40,3 +42,13 @@ provision:
       id student >/dev/null 2>&1 || useradd -m -G wheel student
       restorecon -Rv /etc/ssh /root/.ssh /home/*/.ssh || true
       systemctl reload sshd
+      if ! blkid /dev/vdb | grep -q -E 'LVM2_member|stratis|xfs|swap'; then
+        umount -l /mnt/lima-rhcsa-storage-1 /dev/vdb* 2>/dev/null || true
+        wipefs -a -f /dev/vdb* /dev/vdb 2>/dev/null || true
+        sfdisk --delete /dev/vdb 2>/dev/null || true
+      fi
+      if ! blkid /dev/vdc | grep -q -E 'LVM2_member|stratis|xfs|swap'; then
+        umount -l /mnt/lima-rhcsa-storage-2 /dev/vdc* 2>/dev/null || true
+        wipefs -a -f /dev/vdc* /dev/vdc 2>/dev/null || true
+        sfdisk --delete /dev/vdc 2>/dev/null || true
+      fi
