@@ -1,0 +1,54 @@
+# DKS RHCSA Node 1 (EL 10.2) - APPLE SILICON VZ NATIVE
+vmType: "vz"
+mountType: "virtiofs"
+rosetta:
+  enabled: false
+cpus: 4
+memory: "4GiB"
+disk: "20GiB"
+
+images:
+  - location: "https://download.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-GenericCloud-Base.latest.aarch64.qcow2"
+    arch: "aarch64"
+
+containerd:
+  system: false
+  user: false
+
+additionalDisks:
+  - name: "rhcsa-lvm"
+    format: false
+  - name: "rhcsa-stratis"
+    format: false
+
+networks:
+  - lima: shared
+
+ssh:
+  localPort: 2222
+
+mounts:
+  - location: "~"
+    writable: false
+  - location: "~/obsidian"
+    writable: true
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      hostnamectl set-hostname rhel.example.com
+      id student >/dev/null 2>&1 || useradd -m -G wheel student
+      restorecon -Rv /etc/ssh /root/.ssh /home/*/.ssh || true
+      systemctl reload sshd
+      if ! blkid /dev/vdb | grep -q -E 'LVM2_member|stratis|xfs|swap'; then
+        umount -l /mnt/lima-rhcsa-lvm /dev/vdb* 2>/dev/null || true
+        wipefs -a -f /dev/vdb* /dev/vdb 2>/dev/null || true
+        sfdisk --delete /dev/vdb 2>/dev/null || true
+      fi
+      if ! blkid /dev/vdc | grep -q -E 'LVM2_member|stratis|xfs|swap'; then
+        umount -l /mnt/lima-rhcsa-stratis /dev/vdc* 2>/dev/null || true
+        wipefs -a -f /dev/vdc* /dev/vdc 2>/dev/null || true
+        sfdisk --delete /dev/vdc 2>/dev/null || true
+      fi
