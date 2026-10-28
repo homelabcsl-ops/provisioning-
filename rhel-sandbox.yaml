@@ -1,0 +1,36 @@
+# ==============================================================================
+# 🎩 DKS STANDALONE SERVICE: OFFICIAL RHEL 10 SANDBOX (FULL GRUB2 & VZ DISPLAY)
+# ==============================================================================
+vmType: "vz"
+rosetta:
+  enabled: false
+  binfmt: false
+
+arch: "aarch64"
+cpus: 4
+memory: "4GiB"
+disk: "40GiB"
+
+images:
+  - location: "~/provisioning/rhel-10-red.qcow2.iso"
+    arch: "aarch64"
+
+mounts: []
+
+additionalDisks:
+  - name: "rhcsa-lvm"
+    format: false
+  - name: "rhcsa-stratis"
+    format: false
+
+video:
+  display: "vz"
+
+ssh:
+  localPort: 2222
+  loadDotSSHPubKeys: false
+  forwardAgent: false
+
+containerd:
+  system: false
+  user: false
